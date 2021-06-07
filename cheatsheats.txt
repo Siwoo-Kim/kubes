@@ -1,0 +1,72 @@
+Docker
+    docker run --name [ctName] -p [hostPort:ctPort] [-d] [img:tag] [cmd]
+    - create & run the container from the image.
+    
+    docker exec -it [ctName] bash
+    - run the shell inside the container.
+    
+    docker images [-a] [-q]
+    - list locally stored images.
+    
+    docker ps [-a] [-q]
+    - list the containers.
+    
+    docker logs [ctName]
+    - see the container's logs.
+    
+    docker inspect [ctName]
+    - see low-level info for the container.
+    
+    docker build -t [img:tag] .
+    - build the image from the Dockerfile.
+    
+    docker stop [ctName]
+    - stop the container.
+    
+    docker [rm/rmi] [ctName/img]
+    - delete the container or img.
+    
+    docker tag [img] [dockerId/img:tag]
+    - create an additional img with new tag name.
+    
+    docker push [dockerId/img:tag]
+    - push the image to Docker Hub.
+    
+GKE
+    gcloud container clusters create [clusterName] --num-nodes [numNodes] --machine-type f1-micro
+    - create a Google Kube Engine.
+    
+    gcloud compute ssh [nodeName]
+    - ssh to the node.
+    
+Kube
+    Abbreviation
+    pods=po
+    services=svc
+    replicationcontroller=rc
+    
+    Alias & Bash completion
+        edit in ~/.bashrc
+        - alias kube=kubectl
+        - source <(kubectl completion bash | sed s/kubectl/kube/g)
+    
+    kube cluster-info
+    - list basic kube components.
+    
+    kube api-resources
+    - list all available resources and shortnames.
+    
+    kube get [resourceType] [resourceName] -o [wide|yaml|json]
+    - list resources.
+    
+    kube describe [resourceType] [resourceName]
+    - get info for resources
+    
+    kube run [podName] --image=[img] --port=[ctPort]
+    - create the pod from the container image.
+    
+    kube expose [resource] [resourceName] --type=LoadBalancer --name=[svcName] --selector=[[key]=[value]]
+    - create LoadBalancer svc to expose the resource
+    
+    kube scale [resource] [resourceName] --replicas=[numReplicas]
+    - scale up and down for the resource.

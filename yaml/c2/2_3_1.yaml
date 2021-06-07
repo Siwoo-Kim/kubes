@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: kubia
+  labels:
+    app: kubia
+spec:
+  replicas: 3
+  selector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values: ["kubia"]
+  template:
+    metadata:
+      name: kubia
+      labels:
+        app: kubia
+    spec:
+      containers:
+        - name: backend
+          image: sm123tt/backend:v1
+          imagePullPolicy: Always
+          livenessProbe:
+            initialDelaySeconds: 10
+            timeoutSeconds: 5
+            httpGet:
+              port: 8080
+              path: /
+          ports:
+            - containerPort: 8080
+              protocol: TCP

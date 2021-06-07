@@ -1,0 +1,143 @@
+Monolithic app.
+- running as a single process spread across a handful of servers.
+- slow release cycles.
+- "package up the whole system" and deploy.
+- components "tightly coupled together" and have to be developed, deployed, and manged "as one entity".
+- can't scale components individually.
+
+Vertical Scaling
+- by adding more CPUs, memory to a server.
+
+Horizontal Scaling
+- by adding additional servers (replicas)
+
+Microservices. (ms)
+- monolithic app being broken down into components (microservices)
+- decoupled from each other.
+- developed, deployed, updated and scaled individually.
+- bigger numbers of components hard to configure, manage, and keep.
+- talk through HTTP (sync) or AMQP (async) or IPC
+
+Divergence of environment (배포 환경 차이의 증가)
+- 마이크로서비스는 독립적이기 때문에 필요한 의존 라이브러리를 자유롭게 결정.
+- 문제는 "하나의 노드"에 여러 마이크로서비스를 배포시 중복 라이브러리로 의해 작업 복잡성 증가.
+- The bigger the number of components need to deploy on the same node, the harder it will be to manage all deps.
+
+DevOps
+- a team develops and deploying and taking care of the app.
+
+Container Technologies. (Docker, rkt)
+- to provide "isolation apps" (env, deps, network, filesystem) instead of vm.
+- achieve by using linux namespace & cgroup
+
+    Linux namespaces.
+    - makes sure each process sees its own "personal view" of the system.
+    - mnt
+    - pid   (process id)
+    - net   (network)
+    - ipc   (inter-process communication)
+    - user
+        
+Kube (Kubernetes)
+- a platform that allows you to deploy and manage containerized apps.
+- run apps on one or more nodes.
+- provides service discovering, scaling, load-balancing, self-healing and leader election (master-slave model). 
+- abstract away the underlying infrastructure and expose whole data-center as a single computational resource (cluster).
+- composed of a master node and one or more worker nodes.
+
+Kube architecture.
+    Hardware level.
+        Master Node
+        - hosts the "Kube Control Plane" which controls and manage the whole kube system.
+        - composed of etcd, Kube Api Server, Scheduler, Controller Manager
+            
+        Worker Node
+        - run the actual app you deploy (by "kubelet")
+        - composed of "kubelet", "kube-proxy", "container runtime (docker)"
+        
+Kube Master Components
+    Kube Control Plane
+    - controls the kube cluster and makes it function.
+    - composed of etcd, Kube Api Server, Scheduler, Controller Manager
+    
+    Kube Api Server (KAS)
+    - an entry point allow client and other components in the Control Plan communicate with.
+    
+    Scheduler
+    - schedules apps to supervision ("assign a worker node" to deployable components of your app)
+    - "scheduling" means assigning the pod to a node.
+    
+    Controller Manager.
+    - performs cluster-level functions. (keeps replica, track of worker nodes, handling node failures)
+
+    etcd
+    - a distributed key-value data store that stores the cluster configuration (resource manifests).
+
+Kube Worker Node Components.
+    Container Runtime
+    - runs you containers.
+    
+    Kubelet
+    - talk with API server and manages containers on that node.
+    
+    kube-proxy
+    - load-balances network traffic btw app components.
+
+Docker 
+- a platform for packaging, distributing, and running containerized apps.
+- make containers "portable" across different nodes.
+
+    Docker components.
+    - Images
+        - something you package the app and its env into.
+        - container images are composed of layers that can be shared among different images.
+        - docker run
+        - docker build
+        - docker ps, images
+        
+    - Registries
+        - place to store your images and share with other developer.
+        
+    - Containers
+        - regular linux container (process) created from your image.
+        - isolated from the node and all other processes.
+        - using its own PID Linux namespace. (completely isolated process  tree)
+        - has an isolated filesystem.
+        
+kubectl
+- interact with the kube through the "kubectl cli client".
+- issues REST requests to the Kube API server on the master node.
+
+Pods
+- a group of tightly related containers on the same worker node and in the same Linux namespace.
+- a logical machine which owns IP, hostname, processes.
+- Pods are spread out across different worker nodes. (flat network)
+- basic building block in kube.
+- pods are ephemeral. (can disappear at any time)
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: [podName]
+  labels:
+    [pod's label]
+spec:
+  containers:
+    - name: [ctName]
+      image: [img]
+      ports:
+        - containerPort: [ctPort]
+          protocol: TCP
+  
+    Sequence of deploying a pod 
+    1. developer build & push the img
+    2. developer issues pod's manifest to KAS through "kubectl"
+    3. Scheduler notified the event and schedule the pod to a node.
+    4. kubelet is notified and run the img through "Container Runtime" on the node.
+
+ReplicationController
+- replicate pods and keep the number of replica.
+
+Service.
+- an entrypoint which gets a static IP for multiple pods or rc.
+- redirect & load balancing client requests to the pods.
