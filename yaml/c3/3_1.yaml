@@ -1,0 +1,45 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kubia-1
+  labels:
+    app: kubia
+    rel: beta
+spec:
+  containers:
+    - name: main
+      image: sm123tt/kubia:v1
+      ports:
+        - containerPort: 8080
+          protocol: TCP
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kubia-2
+  labels:
+    app: kubia
+    rel: stable
+spec:
+  containers:
+    - name: main
+      image: sm123tt/kubia:v1
+      ports:
+        - containerPort: 8080
+          protocol: TCP
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kubia-3
+  labels:
+    app: kubia
+    rel: canary
+    creation_method: manual
+spec:
+  containers:
+    - name: main
+      image: sm123tt/kubia:v1
+      ports:
+        - containerPort: 8080
+          protocol: TCP

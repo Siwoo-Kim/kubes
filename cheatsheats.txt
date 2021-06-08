@@ -41,6 +41,7 @@ GKE
     
 Kube
     Abbreviation
+    ns=namespace
     pods=po
     services=svc
     replicationcontroller=rc
@@ -49,24 +50,40 @@ Kube
         edit in ~/.bashrc
         - alias kube=kubectl
         - source <(kubectl completion bash | sed s/kubectl/kube/g)
-    
+
+GET INFORMATION
     kube cluster-info
     - list basic kube components.
     
     kube api-resources
     - list all available resources and shortnames.
     
-    kube get [resourceType] [resourceName] -o [wide|yaml|json]
+    kube explain [resourceJsonPath]
+    - documentation of the resource's manifest
+    
+    kube get [resource] [resourceName] -o [wide|yaml|json] [--show-labels] -n [namespace]
     - list resources.
     
-    kube describe [resourceType] [resourceName]
+    kube describe [resource] [resourceName]
     - get info for resources
+    
+    kube logs [podName] -c [ctName]
+    - get app logs from the container.
+    
+CREATION | EDITING RESOURCE
+
+    kube create -f [resourceManifest]
+        - creating any resource from a YAML file.
     
     kube run [podName] --image=[img] --port=[ctPort]
     - create the pod from the container image.
+    
+    kube label [resource] [resourceName] [key=value] [--overwrite]
+    - editing labels
     
     kube expose [resource] [resourceName] --type=LoadBalancer --name=[svcName] --selector=[[key]=[value]]
     - create LoadBalancer svc to expose the resource
     
     kube scale [resource] [resourceName] --replicas=[numReplicas]
     - scale up and down for the resource.
+   

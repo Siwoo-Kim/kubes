@@ -109,24 +109,84 @@ kubectl
 - issues REST requests to the Kube API server on the master node.
 
 Pods
-- a group of tightly related containers on the same worker node and in the same Linux namespace.
+- co-located group of containers on the same worker node and in the same Linux namespace.
 - a logical machine which owns IP, hostname, processes.
+- containers in a pod run on a single worker node.
 - Pods are spread out across different worker nodes. (flat network)
 - basic building block in kube.
 - pods are ephemeral. (can disappear at any time)
+- creating by posting a JSON manifest to "Kube API server"
+- container logs are automatically rotated daily and every time the log file reaches 10MB in size.
 
+    CONTAINERS IN A POD 
+    - partially isolated.
+    - share the same hostname and network interfaces (IP address and port).
+    - the filesystem of each is fully isolated from others.
+    
+    FLAT INTER-POD Network. (No NAT)
+    - ALL pods in a single flat, shared, network-address space.
+    - each pod gets a routable IP and all other pods see the pod under that IP address.
+    
+    REASON TO SPLIT MULTIPLE CONTAINERS INTO MULTIPLE PODS
+    - taking advantage of cluster's computational resource.
+      컨테이너가 두개일땐, 각 노드에 하나씩 할당하여 리소스 활용성을 높일 수 있지만 하나라면 불가.
+    - horizontally scale individual pods.
+      컨테이너가 두개일땐, 필요한 컨테이너만 스케일을 따 증가시킬 수 있지만 하나라면 불가.
+   
+   WHEN TO USE MULTIPLE CONTAINERS IN A POD
+   - pods should contain tightly coupled containers. (main container and supports - etc log collectors.)
+ 
+    STRUCTURE OF YAML DESCRIPTOR
+    - metadata, spec, status.
+    
+    apiVersion:     # Kube API version
+    kind:           # type of resource
+    metadata:       # Resource metadata [name, namespace, labels, annotations]
+        ...
+    spec:           # Resource specification (containers, volumes, security, networking..)
+        ...
+    status:         # Detailed current status of the resource
+
+    PORT FORWARDING (kube port-forward)
+    - forwarding a local port to a port in the port. 
+    - an effective way to test an pod.
+    
+    ORGANIZING RESOURCES
+    - LABELS, NAMESPACE
+         LABELS
+        - grouping resources into subsets based on criteria. (by function, env, version, feature..)
+        - key-value pair attached to a resource.
+        - label is utilized by "label selectors"
+        
+            LABEL SELECTOR
+            - allow you to select a subset of pods tagged with certain labels.
+            
+            NOT KEY
+            - !key
+            NOT
+            - key!=value
+            IN  
+            - key in (value1, value2...)
+            NOTIN
+            - key notin (value1, value2...) 
+        
+        NAMESPACE
+        - groups objects into namespaces.
+        - separate resources that don't belong together into non-overlapping groups.
+        - still resources in namespace can communicate with others.
+        
 apiVersion: v1
 kind: Pod
 metadata:
   name: [podName]
   labels:
-    [pod's label]
+    [pod's label]   # attached labels for organizing purpose
 spec:
   containers:
-    - name: [ctName]
+    - name: [ctName]    # image to create the container from
       image: [img]
       ports:
-        - containerPort: [ctPort]
+        - containerPort: [ctPort]   # the port the container is listening on
           protocol: TCP
   
     Sequence of deploying a pod 
