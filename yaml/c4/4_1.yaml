@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Pod
+metadata:
+ name: kubia
+ labels:
+   app: kubia
+spec:
+  containers:
+    - name: main
+      image: sm123tt/backend:v1
+      ports:
+        - containerPort: 8080
+          protocol: TCP
+          name: http
+      livenessProbe:
+        initialDelaySeconds: 15 # wait 15 seconds before executing the first probe
+        timeoutSeconds: 3
+        periodSeconds: 10
+        failureThreshold: 5
+        httpGet:
+          port: http
+          path: /fail

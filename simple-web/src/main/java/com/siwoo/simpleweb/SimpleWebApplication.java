@@ -21,12 +21,22 @@ public class SimpleWebApplication {
 	@RestController
 	public static class OpenController {
 		
+		private int cnt;
+		
 		@GetMapping("/")
 		public ResponseEntity<?> index(HttpServletRequest request) {
 			log.info(String.format("Received request from %s.", request.getRemoteAddr()));
 			return ResponseEntity.ok(
 					String.format("You've hit %s\n",
 							System.getenv("HOSTNAME")));
+		}
+		
+		@GetMapping("/fail")
+		public ResponseEntity<?> fail() {
+			if (cnt++ >= 5)
+				return ResponseEntity.badRequest().build();
+			else
+				return ResponseEntity.ok("ok");
 		}
 	}
 }

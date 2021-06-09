@@ -1,3 +1,10 @@
+Linux (nice to know)
+    ps aux
+    - process info
+    
+    ifconfig eth0 down
+    - shut down network interface (eth0)
+   
 Docker
     docker run --name [ctName] -p [hostPort:ctPort] [-d] [img:tag] [cmd]
     - create & run the container from the image.
@@ -39,18 +46,26 @@ GKE
     gcloud compute ssh [nodeName]
     - ssh to the node.
     
+    gcloud compute instances reset [nodeName]
+    - reset the node.
+    
 Kube
     Abbreviation
     ns=namespace
     pods=po
     services=svc
     replicationcontroller=rc
+    replicatset=rs
     
     Alias & Bash completion
         edit in ~/.bashrc
         - alias kube=kubectl
         - source <(kubectl completion bash | sed s/kubectl/kube/g)
 
+    Changing Text Editor
+        export KUBE_EDITOR="[editorToUse]"
+        - configure kube edit to use a different text editor.
+        
 GET INFORMATION
     kube cluster-info
     - list basic kube components.
@@ -67,13 +82,14 @@ GET INFORMATION
     kube describe [resource] [resourceName]
     - get info for resources
     
-    kube logs [podName] -c [ctName]
+    kube logs [podName] -c [ctName] [--previous]
     - get app logs from the container.
     
 CREATION | EDITING RESOURCE
-
     kube create -f [resourceManifest]
         - creating any resource from a YAML file.
+        
+    kube edit [resource] [resourceName]
     
     kube run [podName] --image=[img] --port=[ctPort]
     - create the pod from the container image.

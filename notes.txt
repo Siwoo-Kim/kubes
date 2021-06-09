@@ -108,7 +108,7 @@ kubectl
 - interact with the kube through the "kubectl cli client".
 - issues REST requests to the Kube API server on the master node.
 
-Pods
+pods
 - co-located group of containers on the same worker node and in the same Linux namespace.
 - a logical machine which owns IP, hostname, processes.
 - containers in a pod run on a single worker node.
@@ -117,6 +117,26 @@ Pods
 - pods are ephemeral. (can disappear at any time)
 - creating by posting a JSON manifest to "Kube API server"
 - container logs are automatically rotated daily and every time the log file reaches 10MB in size.
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: [podName]
+  labels:
+    [pod's label]   # attached labels for organizing purpose
+spec:
+  containers:
+    - name: [ctName]    # image to create the container from
+      image: [img]
+      ports:
+        - containerPort: [ctPort]   # the port the container is listening on
+          protocol: TCP
+  
+    Sequence of deploying a pod 
+    1. developer build & push the img
+    2. developer issues pod's manifest to KAS through "kubectl"
+    3. Scheduler notified the event and schedule the pod to a node.
+    4. kubelet is notified and run the img through "Container Runtime" on the node.
 
     CONTAINERS IN A POD 
     - partially isolated.
@@ -129,7 +149,7 @@ Pods
     
     REASON TO SPLIT MULTIPLE CONTAINERS INTO MULTIPLE PODS
     - taking advantage of cluster's computational resource.
-      컨테이너가 두개일땐, 각 노드에 하나씩 할당하여 리소스 활용성을 높일 수 있지만 하나라면 불가.
+      컨테이너가 두개일땐, 두 팟으로 나눠 각 노드에 하나씩 할당하 리소스 활용성을 높일 수 있지만 하나라면 불가.
     - horizontally scale individual pods.
       컨테이너가 두개일땐, 필요한 컨테이너만 스케일을 따 증가시킬 수 있지만 하나라면 불가.
    
@@ -175,29 +195,101 @@ Pods
         - separate resources that don't belong together into non-overlapping groups.
         - still resources in namespace can communicate with others.
         
-apiVersion: v1
-kind: Pod
-metadata:
-  name: [podName]
-  labels:
-    [pod's label]   # attached labels for organizing purpose
-spec:
-  containers:
-    - name: [ctName]    # image to create the container from
-      image: [img]
-      ports:
-        - containerPort: [ctPort]   # the port the container is listening on
-          protocol: TCP
-  
-    Sequence of deploying a pod 
-    1. developer build & push the img
-    2. developer issues pod's manifest to KAS through "kubectl"
-    3. Scheduler notified the event and schedule the pod to a node.
-    4. kubelet is notified and run the img through "Container Runtime" on the node.
+    Liveness Probe
+    - periodically check whether a container is still alive and restart if the probe fails.
+    - specify the probes for each container in a pod.
+    - configure the probe by delay, timeout, period.
+    - Liveness probe cannot solve the node failure scenario
+    
+        HTTP GET Probe
+        - performs an HTTP GET request on the container's IP address, a port and path you specify.
+        
+        TCP Socket Probe
+        - try to open a TCP connection to the specified port.
+        
+        Exec Probe 
+        - execute an arbitrary command inside the container.
+        
+    apiVersion: v1
+    kind: Pod
+    metadata:
+        ...
+    spec:
+      containers:
+        - name: main
+          image: sm123tt/backend:v1
+          ports:
+            ...
+          livenessProbe:
+            initialDelaySeconds: 15 # wait 15 seconds before executing the first probe
+            timeoutSeconds: 3
+            periodSeconds: 10
+            failureThreshold: 5
+            httpGet:
+              port: http
+              path: /fail
+    
+    Ready:          True
+    Restart Count:  4
+    Liveness:       http-get http://:http/fail delay=0s timeout=1s period=10s #success=1 #failure=3
 
-ReplicationController
+RC (ReplicationController)
 - replicate pods and keep the number of replica.
+- ensures the pods managed by rc are always kept running. (node fail or the pod was evicted)
+- pods managed by rc is determined by label & label selector.
+- use RS (ReplicaSet) instead of RC (rs provides better selector)
+- other similar resources are CronJob (scheduled task), Job (completable task), DaemonSet (pod only on certain node)
 
+apiVersion: apps/v1
+kind: ReplicaSet        # defines RS
+metadata:
+    ...
+spec:
+  replicas: 3           # the desire number of pod instances
+  selector:             # the selector to determining managed pod by this rc
+    matchExpressions:
+      - key: app
+        operator: In
+        values: ["kubia"]
+  template:             # pod's template
+    metadata:
+      name: kubia
+      labels:
+        app: kubia      # should match with the above selector's criteria
+    spec:
+      containers:
+        - name: kubia
+          ...
+          livenessProbe:
+            initialDelaySeconds: 10
+            httpGet:
+              port: http
+              path: /
+              
+NAME    DESIRED   CURRENT   READY   AGE
+kubia   3         3         3       4m30s
+
+    RC Components.
+    - label selector - determines what pods are in the rc's scope
+    - replica        - the desired number of pods
+    - pod template   - is used when creating new pod replicas.
+     
+     Effect of Changing The Current rc's Label Selector or Pod Template
+     - no effect on existing pods
+     - label selector makes the existing pods fall out of the scope. (will create new replicas)
+     - The template only affects new pods but not old pods. (cookie cutter)
+     
+    Benefit of RC
+    - failure over
+    - horizontal scaling
+    
+    Moving Pods Out Of the Scope of a RC
+    - changing a pod's label, it can be removed from rc's scope.
+    - good technique for debugging the buggy pods.
+    
+    Scaling a RC
+    - kube scale or kube edit
+    
 Service.
 - an entrypoint which gets a static IP for multiple pods or rc.
 - redirect & load balancing client requests to the pods.
