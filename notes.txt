@@ -291,5 +291,118 @@ kubia   3         3         3       4m30s
     - kube scale or kube edit
     
 Service.
-- an entrypoint which gets a static IP for multiple pods or rc.
+- constant entrypoint which gets a static IP for multiple pods or rc.
 - redirect & load balancing client requests to the pods.
+- allow to find other pod by its name through env variables or DNS.
+- ClusterIP, NodePort, LoadBalancer, Ingress types are available.
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: kubia
+  labels:
+    app: kubia
+spec:
+  sessionAffinity: ClientIP # change behavior of the service proxy 
+  selector:             # All pods with the label will be backed by the service
+    app: kubia
+  ports:
+    - port: 80          # the service will be available on the port
+      name: http        # named port. (mapped to the container's port called "http")
+      targetPort: http  # the container port the service forward to
+    - port
+      name: https
+      targetPort: https # multi ports can be configured.
+
+    Service Components
+    - Cluster IP: is only accessible from inside the cluster.
+    - sessionAffinity: makes the service proxy redirect all requests originating from the same client IP to the same pod.
+    - targetPort: he container port the service forward to
+    - port: the service will be available on the port
+    - nodePort: node opens a port and redirects traffic to the underlying service.
+    - Discovering Services: allow client's pod know the IP and port of a service through env or "Kube DNS"
+    - Endpoints.
+    
+    Discovering Service
+    ENV
+        ...
+        KUBERNETES_SERVICE_PORT_HTTPS=443
+        KUBIA_SERVICE_HOST=10.8.0.136   # clusterIP of the service
+        KUBIA_SERVICE_PORT_HTTPS=443    # the pod the service is available on
+        KUBIA_PORT_80_TCP_PORT=80
+    DNS 
+    - "kube-dns" pod in the namespace "kube-system" provides dns service on the cluster infra.
+    - all the pods are configured to use the dns server (/etc/resolv.conf)
+    
+        [svc].[namespace].svc.cluster.local [FQDN]
+        [svc].[namespace]
+        [svc]
+        
+    Endpoints.
+    - Endpoint represent ip address and port of a pod.
+    
+    Name:              kubia
+    Namespace:         default
+    Labels:            app=kubia
+    Annotations:       cloud.google.com/neg: {"ingress":true}
+    Selector:          app=kubia
+    Type:              ClusterIP
+    IP:                10.8.0.136
+    Port:              http  80/TCP
+    TargetPort:        http/TCP
+    Endpoints:         10.4.0.193:8080,10.4.0.194:8080,10.4.2.93:8080   # the list of pod IPs and ports that represent the endpoints of this service.
+    
+
+    Expose services living outside the cluster. 
+    - 클러스터 외부에 존재하는 서비스를 클러스 내부에 expose.
+    - client pods in the cluster can connect to the external service like they connect to internal services.
+   
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: google
+      labels:
+        app: google
+    spec:               # don't specify selector.
+      ports:
+        - port: 80
+    ---
+    apiVersion: v1
+    kind: Endpoints
+    metadata:
+      name: google      # the name of the ep must match the name of the service.
+      labels:
+        app: google
+    subsets:
+      - addresses:
+          - ip: 172.217.174.206 # IPs of the ep
+        ports:
+          - port: 80            # target port of the endpoints
+         
+  Exposing Services to External Clients
+      NodePort
+      - opens a port on the node and redirects traffic to the service.
+      - reserves a port on all its node for the service.
+      
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: extweb
+        labels:
+          app: extweb
+          rel: beta
+      spec:
+        type: NodePort      # set the service type NodePort
+        selector:
+          app: extweb
+        ports:
+          - port: 80
+            nodePort: 30123 # the service will be accessible throught port 30123 of each of the nodes.
+            name: http
+            targetPort: http
+      
+      LoadBalancer
+      - makes service accessible through a load balancer (provided from cloud sp)
+      Ingress
+      - exposing "multiple services" through a single IP address.
+      

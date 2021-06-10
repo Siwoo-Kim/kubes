@@ -48,6 +48,12 @@ GKE
     
     gcloud compute instances reset [nodeName]
     - reset the node.
+
+    gcloud compute zones list
+    - list available zones
+    
+    gcloud container clusters get-credentials [clusterName] --zone [zoneName]
+    - fetch credentials for the cluster
     
 Kube
     Abbreviation
@@ -56,6 +62,7 @@ Kube
     services=svc
     replicationcontroller=rc
     replicatset=rs
+    endpoints=ep
     
     Alias & Bash completion
         edit in ~/.bashrc
@@ -84,6 +91,8 @@ GET INFORMATION
     
     kube logs [podName] -c [ctName] [--previous]
     - get app logs from the container.
+    
+    kube exec [podName] -- [cmd]
     
 CREATION | EDITING RESOURCE
     kube create -f [resourceManifest]

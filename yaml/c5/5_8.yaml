@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: google
+  labels:
+    app: google
+spec:
+  ports:
+    - port: 80
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: google
+  labels:
+    app: google
+subsets:
+  - addresses:
+      - ip: 172.217.174.206
+    ports:
+      - port: 80
