@@ -383,6 +383,7 @@ spec:
       NodePort
       - opens a port on the node and redirects traffic to the service.
       - reserves a port on all its node for the service.
+      - can access through [svcClusterIP]:[svcPort] or [nodeExternalIP]:[nodePort]
       
       apiVersion: v1
       kind: Service
@@ -403,6 +404,97 @@ spec:
       
       LoadBalancer
       - makes service accessible through a load balancer (provided from cloud sp)
+      - LB has its own unique, public IP address and will redirect 
+      
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: extweb
+        labels:
+          app: extweb
+          rel: beta
+      spec:
+        type: LoadBalancer
+        selector:
+          app: extweb
+        ports:
+          - port: 80
+            targetPort: 8080
+            
       Ingress
       - exposing "multiple services" through a single IP address.
+      - Multiple services can be exposed through a single ingress (with a single public IP)
+      - operate at the application layer (OSI model) and can provide cookie-based session affinity.
       
+        Ingress vs LB
+        - LB service requires its own LB with its own public IP address
+        - Ingress only requires one, even when providing access to dozen of services.
+        
+        apiVersion: extensions/v1beta1
+        kind: Ingress
+        metadata:
+          name: ingress
+          labels:
+            app: ingress
+            chapter: 5-13
+        spec:
+          rules:
+            - host: kubia.example.com   # ingress map the host name to the service
+              http:
+                paths:
+                - backend:
+                    serviceName: user-api
+                    servicePort: 80
+                  path: /user-api
+                - backend:
+                    serviceName: kubia
+                    servicePort: 80
+                  path: /kubia
+        ---
+        apiVersion: v1
+        kind: Service
+        metadata:
+          name: user-api
+          labels:
+            app: user-api
+            chapter: 5-13
+        spec:
+          type: NodePort
+          ports:
+            - port: 80
+              nodePort: 30124
+              name: http
+              targetPort: http
+      
+      Ingress TLS certificate
+      - the communication between client and the server is encrypted.
+      - need to attach server's certificate and a private key to the Ingress. (through secret)
+      
+      kube create secret tls [secretName] --cert=[cert] --key=[key]
+      
+      apiVersion: extensions/v1beta1
+      kind: Ingress
+      metadata:
+        name: ingress
+        labels:
+          app: ingress
+          chapter: 5-13
+      spec:
+        tls:
+          - hosts: ["kubia.example.com"]    # TLS connections will be accepted for this hostname
+            secretName: tls-secret          # secret for the tls key and cert
+        rules:
+     
+     Ingress & Readiness Probes.
+     - when the pod is created, it might not be ready to serve the service.
+     - readiness probe is invoked periodically and determines whether the pod is ready to serve or not.
+     - the pod won't be killed but it will not get any request until it's up again.
+     - three types of probe. exec, http get, tcp
+     
+     Troubleshooting services.
+     - make sure connection for service's cluster IP
+     - define a readiness probe, make sure it's succeeding.
+     - make sure that a pod is part of the service. (kube get ep)
+     - make sure the discovering service work through its FQDN
+     
+     

@@ -55,6 +55,22 @@ spec:
               name: https
               protocol: TCP
 ---
+#apiVersion: v1
+#kind: Service
+#metadata:
+#  name: extweb
+#  labels:
+#    app: extweb
+#    rel: beta
+#spec:
+#  type: NodePort
+#  selector:
+#    app: extweb
+#  ports:
+#    - port: 80
+#      nodePort: 30123
+#      name: http
+#      targetPort: http
 apiVersion: v1
 kind: Service
 metadata:
@@ -63,14 +79,12 @@ metadata:
     app: extweb
     rel: beta
 spec:
-  type: NodePort
+  type: LoadBalancer
   selector:
     app: extweb
   ports:
     - port: 80
-      nodePort: 30123
-      name: http
-      targetPort: http
+      targetPort: 8080
 ---
 apiVersion: apps/v1
 kind: ReplicaSet

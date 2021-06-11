@@ -5,6 +5,12 @@ Linux (nice to know)
     ifconfig eth0 down
     - shut down network interface (eth0)
    
+   /etc/hosts
+   - configure DNS servers
+   
+   openssl genrsa -out tls.key 2048
+   openssl req -new -x509 -key tls.key -out tls.cert -days 360 -subj /CN=[CNAME]
+   
 Docker
     docker run --name [ctName] -p [hostPort:ctPort] [-d] [img:tag] [cmd]
     - create & run the container from the image.
@@ -49,6 +55,9 @@ GKE
     gcloud compute instances reset [nodeName]
     - reset the node.
 
+    gcloud compute firewall-rules create [fileRuleName] --allow=[tcp|udp]:[port]
+    - config firewalls to allow external connections to the port.
+    
     gcloud compute zones list
     - list available zones
     
@@ -63,6 +72,7 @@ Kube
     replicationcontroller=rc
     replicatset=rs
     endpoints=ep
+    ingresses=ing
     
     Alias & Bash completion
         edit in ~/.bashrc
@@ -83,7 +93,7 @@ GET INFORMATION
     kube explain [resourceJsonPath]
     - documentation of the resource's manifest
     
-    kube get [resource] [resourceName] -o [wide|yaml|json] [--show-labels] -n [namespace]
+    kube get [resource] [resourceName] -o [wide|yaml|json] [--show-labels] -n [namespace] [--all-namespaces]
     - list resources.
     
     kube describe [resource] [resourceName]
@@ -97,7 +107,10 @@ GET INFORMATION
 CREATION | EDITING RESOURCE
     kube create -f [resourceManifest]
         - creating any resource from a YAML file.
-        
+    
+    kube create secret tls [secretName] --cert=[cert] --key=[key]
+    - create a secret for TLS cert & key
+    
     kube edit [resource] [resourceName]
     
     kube run [podName] --image=[img] --port=[ctPort]
