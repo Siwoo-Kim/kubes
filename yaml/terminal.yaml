@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: terminal
+  labels:
+    app: terminal
+spec:
+  replicas: 1
+  selector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values: ["terminal"]
+  template:
+    metadata:
+      name: terminal
+      labels:
+        app: terminal
+    spec:
+      containers:
+        - name: terminal
+          image: sm123tt/terminal:v1
+          imagePullPolicy: Always

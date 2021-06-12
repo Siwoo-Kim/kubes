@@ -58,11 +58,17 @@ GKE
     gcloud compute firewall-rules create [fileRuleName] --allow=[tcp|udp]:[port]
     - config firewalls to allow external connections to the port.
     
+    gcloud container clusters list
+    - listing kube clusters
+    
     gcloud compute zones list
     - list available zones
     
     gcloud container clusters get-credentials [clusterName] --zone [zoneName]
     - fetch credentials for the cluster
+    
+    gcloud compute disks create --size=[size,eg=1GiB] --zone=[zone] [diskName]
+    - create GCE persistent disk.
     
 Kube
     Abbreviation
@@ -73,6 +79,8 @@ Kube
     replicatset=rs
     endpoints=ep
     ingresses=ing
+    pv=PersistentVolume
+    pvc=PersistentVolumeClaim
     
     Alias & Bash completion
         edit in ~/.bashrc

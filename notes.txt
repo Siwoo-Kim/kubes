@@ -497,4 +497,185 @@ spec:
      - make sure that a pod is part of the service. (kube get ep)
      - make sure the discovering service work through its FQDN
      
-     
+Volumes
+- must be mounted in each container to use it.
+- data storage that can be shared with other containers.
+- variety of life cycle.
+
+    VolumeTypes
+        emptyDir 
+        - a simple empty directory used for storing transient data
+        - the volume's lifetime is tied to the pod.
+        
+        apiVersion: apps/v1
+        kind: ReplicaSet
+        metadata:
+            ...
+        spec:
+            ...
+            spec:
+              containers:
+                - name: html-generator
+                  image: sm123tt/fortune:v1
+                  imagePullPolicy: Always
+                  volumeMounts:
+                    - mountPath: /var/htdocs # the html volume is mounted at /var/htdocs
+                      name: html
+                  readinessProbe:
+                    initialDelaySeconds: 10
+                    exec:
+                      command:
+                        - "ls"
+                - name: web-server
+                  image: nginx:alpine 
+                  volumeMounts:     
+                    - mountPath: /usr/share/nginx/html  # the same volume as above is mounted as read-only.
+                      name: html
+                      readOnly: true
+                  ports:
+                    - containerPort: 80
+                      name: http
+                      protocol: TCP
+                  readinessProbe:
+                    initialDelaySeconds: 10
+                    httpGet:
+                      port: http
+                      path: /
+              volumes:
+                - name: html        // a single emptyDir volume called html
+                  emptyDir: {}
+                  
+        hostPath
+        - volume points to a specific file or directory on the node's filesystem
+        - pods running on the same node will see the same files.
+        - the volume's lifecycle is tied to the node.
+        
+        cloud disks (gcePersistentDisk, awsElasticBlockStore, azureDisk): used for mounting cloud specific storage.
+            gcePersistentDisk
+            - use GCE Persistent Disk as underlying storage mechanism.
+            - the volume's lifecycle is independent.
+            
+        apiVersion: apps/v1
+        kind: ReplicaSet
+        metadata:
+            ...
+        spec:
+            ...
+          template:
+            metadata:
+              name: mongodb
+              labels:
+                app: mongodb
+                chapter: "6"
+            spec:
+              containers:
+                - name: db
+                  image: mongo
+                  volumeMounts:
+                    - mountPath: /data/db   // mongodb-data volume is mounted at /data/db
+                      name: mongodb-data
+              volumes:
+                - name: mongodb-data
+                  gcePersistentDisk:        // type of volume is GCE Persistent disk.
+                    pdName: mongodb         // the name of the the persistent disk
+                    fsType: ext4            // the filesystem is EXT4.
+                    
+        - configMap, secret, downwardAPI: used for cluster or kube resources info.
+    
+        PersistentVolume (pv) & PersistentVolumeClaim (pvc) & storageClass
+        - decoupling pods from the underlying network storage infrastructure.
+        
+        PersistentVolume (pv)
+        - represents data storage which is provisioned by cluster admins and consumed by pods through pvc
+        - deleting bounded pvc doesn't affect pv to be deleted. (Released Status)
+            다른 pvc 가 바인딩하여 덮어쓰는 방식의 데이터의 유실을 막기 위해.
+            
+            PersistentVolume components.
+            - disk size
+            - underlying storage spec
+            - accessModes.
+             
+        PersistentVolumeClaim (pvc)
+        - a claim for data storage from pod and Kube finds the appropriate pv and binds the volume to the claim.
+        - pvc never know about it's pv
+        
+            PersistentVolumeClaim components.
+            - request disk size
+            - accessMode to use
+            - storageClassName
+        
+        PVC's Access Modes
+        RWO - read & writing for a single client.
+        ROX - read only for multiple clients.
+        RWX - read & writing for multiple clients.
+        
+        pv & pvc
+        apiVersion: v1
+        kind: PersistentVolume
+        metadata:
+          name: mongodb
+          labels:
+            app: mongodb
+            chapter: "6"
+        spec:
+          capacity:
+            storage: 1Gi    # pv's disk size
+          accessModes:      
+            - ReadWriteOnce # a single client for writing and reading
+            - ReadOnlyMany  # multiple clients for reading only
+          gcePersistentDisk:    # the pv is backed by GCE Persitent Disk
+            pdName: mongodb
+            fsType: ext4
+        ---
+        apiVersion: v1
+        kind: PersistentVolumeClaim
+        metadata:
+          name: mongodb
+          labels:
+            app: mongodb
+            chapter: "6"
+        spec:
+          resources:
+            requests:
+              storage: 1Gi      # requesting 1 GiB of storage
+          accessModes:
+            - ReadWriteOnce     # a single client for writing and reading
+          storageClassName: ""   
+       ---
+       apiVersion: apps/v1
+       kind: ReplicaSet
+       ...
+       spec:
+        ...
+         template:
+           metadata:
+             name: mongodb
+             labels:
+               app: mongodb
+               chapter: "6"
+           spec:
+             containers:
+               - name: mongo
+                 image: mongo
+                 volumeMounts:
+                   - mountPath: /data/db
+                     name: mongodb-data
+             volumes:
+               - name: mongodb-data
+                 persistentVolumeClaim:     # refer the pvc by name
+                   claimName: mongodb
+           
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        

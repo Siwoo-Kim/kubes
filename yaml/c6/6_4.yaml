@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: mongodb
+  labels:
+    app: mongodb
+    chapter: "6"
+spec:
+  replicas: 1
+  selector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values: ["mongodb"]
+  template:
+    metadata:
+      name: mongodb
+      labels:
+        app: mongodb
+        chapter: "6"
+    spec:
+      containers:
+        - name: db
+          image: mongo
+          volumeMounts:
+            - mountPath: /data/db
+              name: mongodb-data
+      volumes:
+        - name: mongodb-data
+          gcePersistentDisk:
+            pdName: mongodb
+            fsType: ext4
