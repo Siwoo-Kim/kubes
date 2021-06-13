@@ -1,5 +1,5 @@
-Monolithic app.
-- running as a single process spread across a handful of servers.
+Monolithic app. 모널리틱 앱
+- running "as a single process" spread across a handful of servers.
 - slow release cycles.
 - "package up the whole system" and deploy.
 - components "tightly coupled together" and have to be developed, deployed, and manged "as one entity".
@@ -12,7 +12,7 @@ Horizontal Scaling
 - by adding additional servers (replicas)
 
 Microservices. (ms)
-- monolithic app being broken down into components (microservices)
+- monolithic app being broken down into components (ms)
 - decoupled from each other.
 - developed, deployed, updated and scaled individually.
 - bigger numbers of components hard to configure, manage, and keep.
@@ -28,7 +28,7 @@ DevOps
 
 Container Technologies. (Docker, rkt)
 - to provide "isolation apps" (env, deps, network, filesystem) instead of vm.
-- achieve by using linux namespace & cgroup
+- achieve by using linux namespace (하나 이상의 프로세스들의 독립 공간) & cgroup (프로세스의 리소스 사용량 제한)
 
     Linux namespaces.
     - makes sure each process sees its own "personal view" of the system.
@@ -39,10 +39,10 @@ Container Technologies. (Docker, rkt)
     - user
         
 Kube (Kubernetes)
-- a platform that allows you to deploy and manage containerized apps.
+- a platform that allows you to "deploy and manage containerized apps".
 - run apps on one or more nodes.
 - provides service discovering, scaling, load-balancing, self-healing and leader election (master-slave model). 
-- abstract away the underlying infrastructure and expose whole data-center as a single computational resource (cluster).
+- "abstract away the underlying infrastructure" and expose whole data-center as a single computational resource (cluster).
 - composed of a master node and one or more worker nodes.
 
 Kube architecture.
@@ -53,14 +53,14 @@ Kube architecture.
             
         Worker Node
         - run the actual app you deploy (by "kubelet")
-        - composed of "kubelet", "kube-proxy", "container runtime (docker)"
+        - composed of "kubelet", "kube-proxy", "container runtime (docker or rkt)"
         
-Kube Master Components
+Kube Master Node Components
     Kube Control Plane
     - controls the kube cluster and makes it function.
     - composed of etcd, Kube Api Server, Scheduler, Controller Manager
     
-    Kube Api Server (KAS)
+    Kube Api Server (kas)
     - an entry point allow client and other components in the Control Plan communicate with.
     
     Scheduler
@@ -73,15 +73,15 @@ Kube Master Components
     etcd
     - a distributed key-value data store that stores the cluster configuration (resource manifests).
 
-Kube Worker Node Components.
+Kube Worker Nodes' Components.
     Container Runtime
-    - runs you containers.
+    - runs your containers.
     
     Kubelet
     - talk with API server and manages containers on that node.
     
     kube-proxy
-    - load-balances network traffic btw app components.
+    - load-balances network traffic btw app components (pods in the node).
 
 Docker 
 - a platform for packaging, distributing, and running containerized apps.
@@ -587,7 +587,7 @@ Volumes
         
         PersistentVolume (pv)
         - represents data storage which is provisioned by cluster admins and consumed by pods through pvc
-        - deleting bounded pvc doesn't affect pv to be deleted. (Released Status)
+        - deleting bounded pvc doesn't affect the pv to be deleted. (Released Status)
             다른 pvc 가 바인딩하여 덮어쓰는 방식의 데이터의 유실을 막기 위해.
             
             PersistentVolume components.
@@ -608,6 +608,12 @@ Volumes
         RWO - read & writing for a single client.
         ROX - read only for multiple clients.
         RWX - read & writing for multiple clients.
+        
+        ReclaimPolicy (persistentVolumeReclaimPolicy = 바운드된 pvc 가 삭제된 이후에 대한 pv 정책)
+        Retain - to retain the volume after it's released from its claim
+                 delete and recreate the pv to be reused. 
+        Recycle - deletes the volume's contents and makes the volume available to be claimed again.
+        Delete - deletes the underlying storage.
         
         pv & pvc
         apiVersion: v1
@@ -664,14 +670,43 @@ Volumes
                - name: mongodb-data
                  persistentVolumeClaim:     # refer the pvc by name
                    claimName: mongodb
-           
         
+        Dynamic provisioning (storageClass)
+        - define StorageClass and let the system create a new pv each time through a pvc
+        - kube already includes provisioners for the most popular cloud providers.
         
+        StorageClass components.
+        - provisioner: used for provisioning the pv when a pvc requests the StorageClass
+        - parameters: parameters passed to the provisioner
+         
+        * A StorageClass definition
+        apiVersion: storage.k8s.io/v1
+        kind: StorageClass
+        metadata:
+          name: fast
+        provisioner: kubernetes.io/gce-pd   # the volume plugin to use for provisioning the pv
+        parameters:
+          type: pd-ssd                  # the parameters passed to the provisioner
+          zone: us-central1-c
+        ---
+        apiVersion: v1
+        kind: PersistentVolumeClaim
+        metadata:
+          name: mongodb
+          labels:
+            app: mongodb
+            chapter: "6"
+        spec:
+          storageClassName: fast        # the pvc requests the customer storage class
+                                        # if you omit this, kube will use pd-standard
+          resources:
+            requests:
+              storage: 100Mi
+          accessModes:
+            - ReadWriteOnce
         
-        
-        
-        
-        
+        How to use StorageClass
+        - admin create multiple storage classes with different performance or other characteristics.
         
         
         

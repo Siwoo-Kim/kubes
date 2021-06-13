@@ -1,0 +1,23 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: fast
+provisioner: kubernetes.io/gce-pd
+parameters:
+  type: pd-ssd
+  zone: us-central1-c
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mongodb2
+  labels:
+    app: mongodb
+    chapter: "6"
+spec:
+  #storageClassName: fast
+  resources:
+    requests:
+      storage: 100Mi
+  accessModes:
+    - ReadWriteOnce

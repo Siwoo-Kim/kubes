@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  namespace: prac
+  name: ssd-monitor
+  labels:
+    app: ssd-monitor
+    chapter: prac
+spec:
+  selector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values: ["ssd-monitor"]
+  template:
+    metadata:
+      namespace: prac
+      labels:
+        app: ssd-monitor
+        chapter: prac
+    spec:
+      nodeSelector:
+        disk: ssd
+      containers:
+        - name: main
+          image: luksa/ssd-monitor
+    

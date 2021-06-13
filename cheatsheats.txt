@@ -11,6 +11,12 @@ Linux (nice to know)
    openssl genrsa -out tls.key 2048
    openssl req -new -x509 -key tls.key -out tls.cert -days 360 -subj /CN=[CNAME]
    
+   lsof -t -i tcp:8080
+   - pid for the process listening on 8080
+   
+   kill -9 $(lsof -t -i tcp:8080)
+   - kill the process listening on 8080
+   
 Docker
     docker run --name [ctName] -p [hostPort:ctPort] [-d] [img:tag] [cmd]
     - create & run the container from the image.
@@ -77,10 +83,12 @@ Kube
     services=svc
     replicationcontroller=rc
     replicatset=rs
+    daemonset=ds
     endpoints=ep
     ingresses=ing
     pv=PersistentVolume
     pvc=PersistentVolumeClaim
+    sc=StorageClass
     
     Alias & Bash completion
         edit in ~/.bashrc
@@ -101,7 +109,7 @@ GET INFORMATION
     kube explain [resourceJsonPath]
     - documentation of the resource's manifest
     
-    kube get [resource] [resourceName] -o [wide|yaml|json] [--show-labels] -n [namespace] [--all-namespaces]
+    kube get [resource] [resourceName] -o [wide|yaml|json] [--show-labels] -n [namespace] [--all-namespaces] [-L label1,label2]
     - list resources.
     
     kube describe [resource] [resourceName]

@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kubia
+  namespace: prac
+  labels:
+    app: kubia
+    chapter: prac
+spec:
+  nodeSelector:
+    gpu: "true" #deploy to nodes only containers gpu=true label.
+  containers:
+    - name: main
+      image: sm123tt/kubia-node:v1
+      imagePullPolicy: Always
+      livenessProbe:
+        initialDelaySeconds: 10
+        httpGet:
+          port: http
+          path: /
+      ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
